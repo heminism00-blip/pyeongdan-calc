@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>평단·손익 계산기</title>
+<style>
+  :root{ --ink:#18181b; --sub:#71717a; --line:#e4e4e7; --bg:#fafaf9; --card:#fff; --soft:#f4f4f5;
+         --up:#dc2626; --down:#2563eb; --accent:#111827; --hl:#ecfdf5; --hlbd:#a7f3d0; --hltx:#047857; }
+  @media (prefers-color-scheme: dark){
+    :root{ --ink:#f4f4f5; --sub:#a1a1aa; --line:#3f3f46; --bg:#18181b; --card:#232326; --soft:#2e2e33;
+           --accent:#e4e4e7; --hl:#0f2a20; --hlbd:#155e46; --hltx:#6ee7b7; }
+    input{ background:#2e2e33 !important; } .num{ color:#18181b !important; }
+  }
+  *{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  body{ margin:0; background:var(--bg); color:var(--ink);
+        font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic",sans-serif; }
+  .wrap{ max-width:480px; margin:0 auto; padding:20px 16px 48px; }
+  h1{ font-size:22px; font-weight:700; letter-spacing:-.02em; margin:0 0 2px; }
+  .lead{ font-size:13px; color:var(--sub); margin:0 0 18px; }
+  .card{ background:var(--card); border:1px solid var(--line); border-radius:14px; padding:14px; margin-bottom:12px; }
+  .grp{ font-size:13px; font-weight:700; margin:0 0 10px; display:flex; align-items:center; gap:6px; }
+  .num{ display:inline-flex; align-items:center; justify-content:center; width:20px; height:20px;
+        border-radius:50%; background:var(--accent); color:#fff; font-size:11px; font-weight:700; }
+  .sub2{ font-size:11px; font-weight:400; color:var(--sub); }
+  .field{ margin-bottom:10px; } .field:last-child{ margin-bottom:0; }
+  label{ display:block; font-size:12px; color:var(--sub); margin-bottom:4px; }
+  .lbl-row{ display:flex; justify-content:space-between; align-items:center; }
+  .chip{ font-size:11px; font-weight:600; color:#3f3f46; background:var(--soft); border:1px solid var(--line);
+         border-radius:6px; padding:2px 8px; cursor:pointer; }
+  @media (prefers-color-scheme: dark){ .chip{ color:#e4e4e7; } }
+  input{ width:100%; min-width:0; border:1px solid var(--line); border-radius:10px; padding:11px 4px;
+         font-size:15px; background:#fff; color:var(--ink); outline:none; text-align:right; }
+  input:focus{ border-color:#a1a1aa; }
+  input.main-sell{ border-color:#c7d2fe; background:#eef2ff; font-weight:700; color:#3730a3; }
+  input.msoft{ border-color:#dbe2fe; background:#f5f7ff; }
+  input.main-buy{ border-color:#fbcfe8; background:#fdf2f8; font-weight:700; color:#9d174d; }
+  input.soft-buy{ border-color:#fbcfe8; background:#fdf2f8; }
+  .addwrap{ background:#fefce8; border:1px solid #fde68a; border-radius:10px; padding:10px; margin-top:4px; }
+  .hlline{ background:var(--soft); border-radius:8px; padding:8px 10px; margin-top:2px; }
+  .fval{ color:#4338ca !important; font-size:20px !important; }
+  @media (prefers-color-scheme: dark){
+    input.main-sell{ background:#1e1b4b !important; border-color:#4338ca; color:#c7d2fe; }
+    input.msoft{ background:#242437 !important; border-color:#3f3f6b; }
+    input.main-buy{ background:#3f1d2e !important; border-color:#9d174d; color:#fbcfe8; }
+    input.soft-buy{ background:#2e2028 !important; border-color:#6b2d47; }
+    .addwrap{ background:#2a2717; border-color:#5c4d1f; }
+    .fval{ color:#a5b4fc !important; } }
+  .netbox{ display:flex; gap:10px; align-items:stretch; }
+  .netbox>div{ flex:1; background:var(--soft); border-radius:10px; padding:9px 12px; display:flex; flex-direction:column; gap:2px; }
+  .netbox .nb-r{ flex:0 0 34%; }
+  .netbox .nb-k{ font-size:11px; color:var(--sub); }
+  .netbox .v{ text-align:left; }
+    .costbox{ margin-top:8px; font-size:11.5px; color:var(--sub); line-height:1.6; text-align:left; }
+  .costbox b{ font-weight:600; color:var(--sub); font-variant-numeric:tabular-nums; }
+  .costbox span{ display:block; }
+  .costbox b{ white-space:nowrap; }
+  .stp{ display:flex; gap:2px; align-items:stretch; }
+  .stp input{ flex:1; min-width:0; }
+  .sb{ width:32px; border:1px solid var(--line); background:var(--soft); color:#3f3f46; border-radius:10px;
+       font-size:18px; line-height:1; cursor:pointer; user-select:none; padding:0; }
+  @media (prefers-color-scheme: dark){ .sb{ color:#e4e4e7; } }
+  .sb:active{ background:#e4e4e7; }
+  .row2{ display:flex; gap:8px; } .row2>*{ flex:1; }
+  .arhead{ display:flex; gap:6px; font-size:11px; color:var(--sub); margin-bottom:4px; }
+  .arhead span:nth-child(1),.arhead span:nth-child(2){ flex:1; } .arhead span:nth-child(3){ width:30px; }
+  .addrow{ display:flex; gap:6px; align-items:center; margin-bottom:8px; }
+  .addrow .stp{ flex:1; }
+  .rm{ width:30px; border:1px solid var(--line); background:var(--soft); color:var(--sub); border-radius:8px;
+       font-size:16px; cursor:pointer; padding:8px 0; }
+  .addbtn{ width:100%; border:1px dashed var(--line); background:transparent; color:var(--sub);
+       border-radius:10px; padding:9px; font-size:13px; font-weight:600; cursor:pointer; margin-top:2px; }
+  .seg{ display:flex; gap:6px; margin:10px 0; }
+  .seg button{ flex:1; border:1px solid var(--line); background:var(--card); color:var(--sub);
+        border-radius:8px; padding:7px; font-size:12px; font-weight:600; cursor:pointer; }
+  .seg button.on{ background:var(--accent); color:var(--card); border-color:var(--accent); }
+  .out{ border-top:1px dashed var(--line); margin-top:12px; padding-top:10px; }
+  .line{ display:flex; justify-content:space-between; align-items:baseline; padding:5px 0; font-size:14px; gap:10px; }
+  .line .k{ color:var(--sub); } .line .v{ font-weight:600; font-variant-numeric:tabular-nums; text-align:right; }
+  .big{ font-size:18px; }
+  .up{ color:var(--up); } .down{ color:var(--down); } .flat{ color:var(--sub); }
+  .hint{ font-size:11px; color:var(--sub); margin-top:8px; line-height:1.5; }
+  .be{ margin-top:12px; background:var(--hl); border:1px solid var(--hlbd); border-radius:10px; padding:10px 12px; }
+  .be .t{ font-size:12px; color:var(--hltx); font-weight:600; }
+  .be .p{ font-size:20px; font-weight:700; color:var(--hltx); font-variant-numeric:tabular-nums; margin-top:2px; }
+  .be .d{ font-size:11px; color:var(--hltx); opacity:.9; margin-top:2px; }
+  .rem{ margin-top:10px; background:var(--soft); border-radius:10px; padding:10px 12px; }
+  .rem .t{ font-size:12px; color:var(--sub); font-weight:600; margin-bottom:2px; }
+  .foot{ text-align:center; font-size:11px; color:var(--sub); margin-top:16px; line-height:1.6; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>평단·손익 계산기</h1>
+  <p class="lead">분할매수 → 매도까지, 수수료·세금 반영 실현손익.</p>
+
+  <!-- 매수 -->
+  <div class="card">
+    <div class="grp"><span class="num">1</span> 매수 (보유분 + 분할 추가매수)</div>
+    <div class="row2">
+      <div class="field"><label>보유 평단 (원)</label><input id="avg" class="main-buy money" type="text" inputmode="numeric" value="1848000" /></div>
+      <div class="field"><label>보유 수량 (주)</label>
+        <div class="stp"><button class="sb minus">−</button><input id="qty" class="soft-buy" data-kind="qty" type="number" inputmode="decimal" value="1" data-min="0" /><button class="sb plus">+</button></div>
+      </div>
+    </div>
+    <div class="addwrap">
+      <div style="font-size:12px;color:var(--sub);margin:0 0 6px;font-weight:600">분할 추가매수 <span class="sub2">(여러 번 가능 · 기본가 = 보유 평단)</span></div>
+      <div class="arhead"><span>매수가 (원)</span><span>수량 (주)</span><span></span></div>
+      <div id="addrows"></div>
+      <button id="addRowBtn" class="addbtn">+ 분할 추가매수</button>
+    </div>
+    <div class="out">
+      <div class="line hlline"><span class="k">최종 평균단가</span><span class="v big fval" id="f_avg">–</span></div>
+      <div class="line"><span class="k">총 수량 / 총 매수금</span><span class="v" id="f_tot">–</span></div>
+    </div>
+  </div>
+
+  <!-- 매도 -->
+  <div class="card">
+    <div class="grp"><span class="num">2</span> 매도 예상 <span class="sub2">수수료·세금 반영</span></div>
+    <div class="row2" style="align-items:flex-end">
+      <div class="field" style="margin:0">
+        <div class="lbl-row"><label style="margin:0 0 4px">매도 예상가 (원)</label></div>
+        <div class="stp"><button class="sb minus">−</button><input id="s_px" class="main-sell money" data-kind="price" type="text" inputmode="numeric" data-min="0" /><button class="sb plus">+</button></div>
+      </div>
+      <div class="field" style="margin:0">
+        <div class="lbl-row"><label style="margin:0 0 4px">매도 수량 (주)</label><span class="chip" id="allbtn">전량</span></div>
+        <div class="stp"><button class="sb minus">−</button><input id="s_qty" class="msoft" data-kind="qty" type="number" inputmode="decimal" data-min="0" /><button class="sb plus">+</button></div>
+      </div>
+    </div>
+    <div class="row2" style="margin-top:2px">
+      <div class="field"><label>목표 수익률 (%) <span class="sub2">역산</span></label><input id="tgtret" type="number" inputmode="decimal" placeholder="예: 4" /></div>
+      <div class="field"><label>목표 실현손익 (원)</label><input id="tgtprofit" type="number" inputmode="decimal" placeholder="예: 50000" /></div>
+    </div>
+    <p class="hint" style="margin-top:2px">🎯 목표를 넣으면 <b>매도 예상가가 자동으로 맞춰져요</b> (수수료·세금 반영).</p>
+    <div class="seg" id="feemode">
+      <button data-m="rate" class="on">율(%)로 · 예측</button>
+      <button data-m="amt">금액 직접 · 체결확인</button>
+    </div>
+    <div class="row2" id="feerate">
+      <div class="field"><label>수수료율 (%)</label><input id="s_fee" type="number" inputmode="decimal" value="0.014" /></div>
+      <div class="field"><label>거래세율 (%) <span class="sub2">ETF는 0</span></label><input id="s_tax" type="number" inputmode="decimal" value="0.20" /></div>
+    </div>
+    <div class="row2" id="feeamt" style="display:none">
+      <div class="field"><label>수수료 (원) <span class="sub2">체결내역</span></label><input id="s_feeamt" type="number" inputmode="decimal" placeholder="0" /></div>
+      <div class="field"><label>제세금 (원) <span class="sub2">체결내역</span></label><input id="s_taxamt" type="number" inputmode="decimal" placeholder="0" /></div>
+    </div>
+    <div class="out">
+      <div class="netbox">
+        <div class="nb-l"><span class="nb-k">매도분 순 실현손익</span><span class="v big" id="s_net">–</span></div>
+        <div class="nb-r"><span class="nb-k">수익률</span><span class="v" id="s_ret">–</span></div>
+      </div>
+      <div class="costbox">
+        <span>수수료 <b id="s_fee_o">–</b> · 거래세 <b id="s_tax_o">–</b> · 합계 <b id="s_cost_o">–</b></span>
+      </div>
+    </div>
+    <div class="be">
+      <div class="t">🎯 손익분기 매도가</div>
+      <div class="p" id="s_bep">–</div>
+      <div class="d" id="s_bepd">이 가격 이상 팔아야 손해 안 봐요.</div>
+    </div>
+    <div class="rem">
+      <div class="t" id="rem_t">남은 보유분</div>
+      <div class="line" style="padding:3px 0"><span class="k">남은 수량 / 평가금</span><span class="v" id="rem_val">–</span></div>
+      <div class="line" style="padding:3px 0"><span class="k">평가손익 <span class="sub2">(미실현)</span></span><span class="v" id="rem_pl">–</span></div>
+      <div class="line" style="padding:3px 0"><span class="k">총 손익 <span class="sub2">(실현+평가)</span></span><span class="v" id="rem_total">–</span></div>
+    </div>
+    <p class="hint">수수료율·거래세율은 증권사·종목마다 달라요. 정확히 맞추려면 <b>금액 직접</b> 탭에 체결내역을 넣으세요.</p>
+  </div>
+
+  <div class="foot">개인 계산 참고용 · 정확한 수수료·세금은 증권사 체결내역 기준.</div>
+</div>
+
+<script>
+(function(){
+  var $=function(id){return document.getElementById(id);};
+  var won=function(n){ if(!isFinite(n)) return '–'; return (n<0?'-':'')+Math.abs(Math.round(n)).toLocaleString('ko-KR')+'원'; };
+  var swon=function(n){ if(!isFinite(n)) return '–'; return (n>0?'+':(n<0?'-':''))+Math.abs(Math.round(n)).toLocaleString('ko-KR')+'원'; };
+  var pct=function(n){ if(!isFinite(n)) return '–'; return (n>0?'+':'')+n.toFixed(2)+'%'; };
+  var cls=function(n){ return n>0?'up':(n<0?'down':'flat'); };
+  var pv=function(el){ var v=parseFloat(String(el.value).replace(/,/g,'')); return isNaN(v)?null:v; };
+  var num=function(id){ return pv($(id)); };
+  function set(id,txt,c){ var e=$(id); e.textContent=txt; e.className='v'+(e.classList.contains('big')?' big':'')+(c?' '+c:''); }
+
+  // KRX 호가 단위
+  function tick(p){ p=Math.abs(p||0);
+    if(p<2000) return 1; if(p<5000) return 5; if(p<20000) return 10;
+    if(p<50000) return 50; if(p<200000) return 100; if(p<500000) return 500; return 1000; }
+  function ceilTick(p){ var t=tick(p); return Math.ceil(p/t)*t; }
+
+  var sellpxD=false, sellqtyD=false, feeMode='rate';
+
+  function readAdds(){ var rows=[]; document.querySelectorAll('.addrow').forEach(function(r){
+    var px=pv(r.querySelector('.arpx')), q=parseFloat(String(r.querySelector('.arqty').value).replace(/,/g,''));
+    if(px!==null&&!isNaN(q)&&q>0) rows.push({px:px,q:q}); }); return rows; }
+  function computeFinal(){ var a=num('avg')||0, q=num('qty')||0; var tq=q, tc=a*q;
+    readAdds().forEach(function(r){ tq+=r.q; tc+=r.px*r.q; });
+    if(tq<=0||tc<=0) return null; return {favg:tc/tq, tq:tq, tc:tc}; }
+  function bepPrice(){ var f=computeFinal(); if(!f) return null;
+    var c=(num('s_fee')||0)/100, t=(num('s_tax')||0)/100; return f.favg*(1+c)/(1-c-t); }
+  function defSell(){ var b=bepPrice(); return b?ceilTick(b):num('avg'); }
+  function sellState(){ var f=computeFinal(); if(!f) return null;
+    var sq=num('s_qty'); if(sq===null||sq>f.tq) sq=f.tq; if(!(sq>0)) return null;
+    return {favg:f.favg, sq:sq, c:(num('s_fee')||0)/100, t:(num('s_tax')||0)/100}; }
+  function fromReturn(r){ var s=sellState(); if(!s) return null; return s.favg*(1+s.c+r/100)/(1-s.c-s.t); }
+  function fromProfit(P){ var s=sellState(); if(!s) return null; return (P+s.favg*s.sq*(1+s.c))/(s.sq*(1-s.c-s.t)); }
+  function applyPrice(S){ if(!S||!isFinite(S)||S<=0) return; sellpxD=true; $('s_px').value=ceilTick(S); calc(); }
+  function reapplyTarget(){ var r=num('tgtret'); if(r!==null){ applyPrice(fromReturn(r)); return true; }
+    var P=num('tgtprofit'); if(P!==null){ applyPrice(fromProfit(P)); return true; } return false; }
+  function clearTargets(){ $('tgtret').value=''; $('tgtprofit').value=''; }
+  function recompute(){ if(reapplyTarget()) return; if(!sellpxD&&feeMode==='rate'){ var d=defSell(); if(d) $('s_px').value=d; } calc(); }
+
+  // 천단위 콤마
+  function commafy(el){ var raw=String(el.value).replace(/[^0-9.]/g,''); if(raw==='') { el.value=''; return; }
+    var neg=false; var n=raw; var parts=n.split('.'); var ip=parts[0].replace(/\B(?=(\d{3})+(?!\d))/g,',');
+    el.value=ip+(parts.length>1?('.'+parts[1]):''); }
+  function commaAll(){ document.querySelectorAll('.money').forEach(function(el){ if(document.activeElement!==el) commafy(el); }); }
+  // 폰트 자동 축소(숫자 안 잘리게)
+  function fit(el){ el.style.fontSize=''; var fs=15; while(el.scrollWidth>el.clientWidth&&fs>10){ fs-=0.5; el.style.fontSize=fs+'px'; } }
+  function fitAll(){ document.querySelectorAll('input[type=text],input[type=number]').forEach(fit); }
+
+  // 추가매수 행 생성
+  function makeRow(px){
+    var d=document.createElement('div'); d.className='addrow';
+    d.innerHTML='<div class="stp"><button class="sb minus">−</button><input class="arpx money" data-kind="price" type="text" inputmode="numeric" data-min="0"><button class="sb plus">+</button></div>'
+      +'<div class="stp"><button class="sb minus">−</button><input class="arqty" data-kind="qty" type="number" inputmode="decimal" data-min="0" placeholder="0"><button class="sb plus">+</button></div>'
+      +'<button class="rm">×</button>';
+    $('addrows').appendChild(d);
+    if(px) d.querySelector('.arpx').value=px;
+    d.querySelectorAll('input').forEach(function(inp){ inp.addEventListener('input', function(){ if(inp.classList.contains('money')) commafy(inp); recompute(); }); });
+    return d;
+  }
+
+  function calc(){
+    var f=computeFinal();
+    if(f){
+      $('f_avg').textContent=won(f.favg);
+      $('f_tot').textContent=(Math.round(f.tq*100)/100).toLocaleString('ko-KR')+'주 / '+won(f.tc);
+    } else { $('f_avg').textContent='–'; $('f_tot').textContent='–'; }
+    var favg=f?f.favg:null, tq=f?f.tq:0;
+
+    if(!sellqtyD && tq>0) $('s_qty').value=Math.round(tq*100)/100;
+    var sp=num('s_px'), sq=num('s_qty'); if(sq===null||sq>tq) sq=tq;
+    var c=(num('s_fee')||0)/100, t=(num('s_tax')||0)/100;
+
+    if(favg && sp && sq>0){
+      var buyCost=favg*sq, sellAmt=sp*sq, feeSum, tax, net, bep;
+      if(feeMode==='rate'){ var bf=buyCost*c, sf=sellAmt*c; tax=sellAmt*t; feeSum=bf+sf;
+        net=(sellAmt-sf-tax)-(buyCost+bf); bep=favg*(1+c)/(1-c-t);
+      } else { feeSum=num('s_feeamt')||0; tax=num('s_taxamt')||0; net=(sellAmt-buyCost)-feeSum-tax; bep=(buyCost+feeSum+tax)/sq; }
+      var nret=net/buyCost*100;
+      set('s_net', swon(net), cls(net)); set('s_ret', pct(nret), cls(nret));
+      $('s_fee_o').textContent='-'+won(feeSum);
+      $('s_tax_o').textContent='-'+won(tax);
+      $('s_cost_o').textContent='-'+won(feeSum+tax);
+      $('s_bep').textContent=won(bep);
+      var diff=sp-bep;
+      $('s_bepd').textContent=diff>=0?('현재 매도가가 손익분기보다 '+won(diff)+' 높음 → 이익권 ✓'):('현재 매도가가 손익분기보다 '+won(-diff)+' 낮음 → 손해 ✗');
+      var rq=tq-sq;
+      if(rq>0.0001){ $('rem_t').textContent='남은 보유분';
+        $('rem_val').textContent=(Math.round(rq*100)/100).toLocaleString('ko-KR')+'주 / '+won(sp*rq);
+        var rpl=(sp-favg)*rq; set('rem_pl', swon(rpl), cls(rpl)); set('rem_total', swon(net+rpl), cls(net+rpl));
+      } else { $('rem_t').textContent='전량 매도 (남은 0주)'; $('rem_val').textContent='–'; $('rem_pl').textContent='–'; set('rem_total', swon(net), cls(net)); }
+    } else { ['s_net','s_ret','s_fee_o','s_tax_o','s_cost_o','s_bep','rem_val','rem_pl','rem_total'].forEach(function(i){$(i).textContent='–';});
+      $('s_bepd').textContent='이 가격 이상 팔아야 손해 안 봐요.'; }
+    setTimeout(function(){ commaAll(); fitAll(); },0);
+  }
+
+  // 스테퍼·행추가·전량 — 이벤트 위임
+  document.addEventListener('click', function(e){
+    var b=e.target;
+    if(b.classList.contains('sb')){
+      var el=b.closest('.stp').querySelector('input'); var plus=b.classList.contains('plus');
+      var v=(pv(el)||0);
+      if(el.dataset.kind==='price'){ var tk=tick(v); v=Math.round(v/tk)*tk+(plus?tk:-tk); } else { v=v+(plus?1:-1); }
+      var mn=el.dataset.min!==undefined?parseFloat(el.dataset.min):null; if(mn!==null&&v<mn) v=mn;
+      el.value=Math.round(v*100)/100; el.dispatchEvent(new Event('input',{bubbles:true}));
+    } else if(b.classList.contains('rm')){ b.closest('.addrow').remove(); recompute(); }
+    else if(b.id==='addRowBtn'){ makeRow(num('avg')); recompute(); }
+    else if(b.id==='allbtn'){ sellqtyD=false; recompute(); }
+  });
+
+  var fseg=$('feemode').querySelectorAll('button');
+  fseg.forEach(function(bt){ bt.addEventListener('click', function(){
+    fseg.forEach(function(x){x.classList.remove('on');}); bt.classList.add('on'); feeMode=bt.dataset.m;
+    $('feerate').style.display=feeMode==='rate'?'':'none'; $('feeamt').style.display=feeMode==='amt'?'':'none'; calc();
+  }); });
+
+  document.querySelectorAll('.money').forEach(function(el){ el.addEventListener('input', function(){ commafy(el); }); });
+  $('avg').addEventListener('input', recompute);
+  $('qty').addEventListener('input', recompute);
+  $('s_px').addEventListener('input', function(){ sellpxD=true; clearTargets(); calc(); });
+  $('s_qty').addEventListener('input', function(){ sellqtyD=true; if(!reapplyTarget()) calc(); });
+  $('tgtret').addEventListener('input', function(){ var r=num('tgtret'); if(r!==null){ $('tgtprofit').value=''; applyPrice(fromReturn(r)); } });
+  $('tgtprofit').addEventListener('input', function(){ var P=num('tgtprofit'); if(P!==null){ $('tgtret').value=''; applyPrice(fromProfit(P)); } });
+  ['s_fee','s_tax','s_feeamt','s_taxamt'].forEach(function(id){ $(id).addEventListener('input', recompute); });
+
+  makeRow(num('avg'));  // 시작: 추가매수 행 1개(기본가=보유평단)
+  recompute(); setTimeout(function(){ commaAll(); fitAll(); },30);
+})();
+</script>
+</body>
+</html>
