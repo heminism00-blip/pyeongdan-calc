@@ -1,0 +1,13 @@
+{
+  "name": "평단·손익 계산기",
+  "short_name": "평단계산기",
+  "description": "분할매수·매도·수익률을 수수료·세금까지 반영해 계산",
+  "start_url": ".",
+  "scope": ".",
+  "display": "standalone",
+  "background_color": "#fafaf9",
+  "theme_color": "#4338ca",
+  "icons": [
+    { "src": "icon.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}
